@@ -71,3 +71,32 @@ class GRU(nn.Module):
         output = self.fc(output)
 
         return output
+
+
+class RecursiveLSTM(nn.Module):
+    def __init__(self, num_pred, num_layers=1, num_hidden=50):
+        """
+        LSTM model for multi-step prediction performed in a recurisve manner, where predicted output for t + 1
+        is used as input for prediction of t + 2, and so on (accumulative error)
+        :param num_pred: int, number of future time steps to predict
+        :param num_layers: number of LSTM layers
+        :param num_hidden: int, number of hidden features
+        """
+        super(RecursiveLSTM, self).__init__()
+        self.num_pred = num_pred
+        self.num_layers = num_layers
+        self.hidden_size = num_hidden
+        self.lstm = nn.LSTM(1, num_hidden, num_layers=num_layers, batch_first=True)
+        self.fc = nn.Linear(num_hidden, 1)
+
+    def forward(self, x):
+        pred = torch.empty([x.size()[0], self.num_pred])
+        for i in range(self.num_pred):
+            output, [h, c] = self.lstm(x)
+            output = self.fc(output[:, -1, :])
+            pred[:, i] = torch.squeeze(output, -1)
+
+            output = torch.unsqueeze(output, -1)
+            x = torch.cat([x, output], 1)[:, 1:, :]
+
+        return pred

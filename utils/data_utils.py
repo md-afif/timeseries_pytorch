@@ -3,6 +3,22 @@ from sklearn.model_selection import train_test_split
 import torch
 import torch.utils.data as data_utils
 
+def resample_time(df, datetime_col, method='D'):
+    """
+    Mean aggregation of timestamps in the dataset into given method
+    Original DataFrame remains unchanged, copy will be made
+    :param df: pd.DataFrame, must contain a column of type datetime64
+    :param datetime_col: str, said datetime column
+    :param method: str, offset method - refer to https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html
+    :return: agg_df, aggregated DataFrame
+    """
+    agg_df = df.copy()
+    agg_df.set_index(datetime_col, inplace=True)
+    agg_df = agg_df.resample(method).mean().reset_index()
+
+    return agg_df
+
+
 def sliding_windows(x, window=7, overlap=1, num_pred=1):
     """
     Given a univariate time series, form time windows based on specified inputs
@@ -25,6 +41,8 @@ def sliding_windows(x, window=7, overlap=1, num_pred=1):
 
         X = np.append(X, hist.reshape((1, window)), axis=0)
         y = np.append(y, pred.reshape(1, num_pred), axis=0)
+
+    print(f'Mean : {np.mean(y)}, SD : {np.std(y)}')
 
     return X, y
 
