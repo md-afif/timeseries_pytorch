@@ -47,9 +47,11 @@ elif model_name == 'GRU':
     model = models.GRU(num_layers=2, num_hidden=100)
 elif model_name == 'RecursiveLSTM':
     model = models.RecursiveLSTM(num_pred=NUM_PRED, num_layers=1, num_hidden=10)
+elif model_name == 'AttentionLSTM':
+    model = models.AttentionLSTM(1, 16, 8, num_layers=2, num_hidden=20, bidirectional=True)
 
 loss_fn = nn.MSELoss()
-optimiser = optim.SGD(model.parameters(), lr=LEARNING_RATE)
+optimiser = optim.RMSprop(model.parameters(), lr=LEARNING_RATE)
 print(f'Model architecture :\n{model}')
 
 # train_iter = iter(train_loader)
